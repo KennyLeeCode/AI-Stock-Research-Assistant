@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import Settings, get_settings
 from app.core.exceptions import register_exception_handlers
 from app.database import init_db
+from app.services.providers import close_provider
 
 API_PREFIX = "/api"
 APP_VERSION = "0.1.0"
@@ -49,8 +50,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.warning("ANTHROPIC_API_KEY is not set. Research generation will fail.")
 
     logger.info("%s started in %s mode", settings.app_name, settings.environment)
-    yield
-    logger.info("%s shutting down", settings.app_name)
+    try:
+        yield
+    finally:
+        # Release the provider's HTTP connection pool so shutdown is clean and
+        # tests do not leak sockets between runs.
+        await close_provider()
+        logger.info("%s shutting down", settings.app_name)
 
 
 def create_app() -> FastAPI:
