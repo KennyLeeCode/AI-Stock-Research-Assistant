@@ -27,18 +27,22 @@ export class ApiError extends Error {
   readonly code: ApiErrorCode
   readonly status: number | null
   readonly details: Record<string, unknown> | undefined
+  /** Server correlation id. Present on 5xx responses only. */
+  readonly requestId: string | undefined
 
   constructor(
     code: ApiErrorCode,
     message: string,
     status: number | null = null,
     details?: Record<string, unknown>,
+    requestId?: string,
   ) {
     super(message)
     this.name = 'ApiError'
     this.code = code
     this.status = status
     this.details = details
+    this.requestId = requestId
   }
 
   /** True when retrying the same request could plausibly succeed. */
@@ -105,11 +109,23 @@ export function toApiError(error: unknown): ApiError {
 
   if (error instanceof AxiosError) {
     const status = error.response?.status ?? null
+    // The header is set on every error response; the body carries the same id
+    // on 5xx. Preferring the body keeps the two consistent when both exist.
+    const headerRequestId = error.response?.headers?.['x-request-id']
+    const requestId =
+      typeof headerRequestId === 'string' ? headerRequestId : undefined
 
     // The backend's own envelope. Its message is written for users.
     if (isApiErrorBody(error.response?.data)) {
-      const { code, message, details } = error.response.data.error
-      return new ApiError(code, message, status, details)
+      const { code, message, details, request_id: bodyRequestId } =
+        error.response.data.error
+      return new ApiError(
+        code,
+        message,
+        status,
+        details,
+        bodyRequestId ?? requestId,
+      )
     }
 
     if (error.code === 'ECONNABORTED') {

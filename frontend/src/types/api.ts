@@ -267,6 +267,11 @@ export interface ApiErrorBody {
     code: ApiErrorCode
     message: string
     details?: Record<string, unknown>
+    /**
+     * Correlation id, present on server errors (5xx) only. Quoting it in a bug
+     * report lets an operator find the exact traceback in the server log.
+     */
+    request_id?: string
   }
 }
 

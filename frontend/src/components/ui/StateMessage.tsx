@@ -292,6 +292,16 @@ export function ErrorState({
       <p className={styles.title}>{copy.title}</p>
       <p className={styles.description}>{copy.description}</p>
       {copy.hint && <p className={styles.hint}>{copy.hint}</p>}
+      {apiError.requestId && (
+        // Shown only when the server sends one, which it does for 5xx only.
+        // Surfacing it turns "it broke" into a report an operator can act on.
+        <p className={styles.hint}>
+          Reference:{' '}
+          <code style={{ fontFamily: 'var(--font-mono)' }}>
+            {apiError.requestId}
+          </code>
+        </p>
+      )}
       {onRetry && copy.retryable && (
         <div className={styles.actions}>
           <Button variant="secondary" size="sm" onClick={onRetry}>

@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react'
 
 import { fetchHealth } from '@/api/endpoints'
 import { Dashboard } from '@/components/Dashboard'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { OfflineBanner } from '@/components/OfflineBanner'
 import { SearchBar } from '@/components/SearchBar'
 import { WatchlistButton } from '@/components/WatchlistButton'
 import { WatchlistChips, WatchlistPanel } from '@/components/WatchlistPanel'
@@ -75,6 +77,8 @@ function AppContent() {
         </div>
       </header>
 
+      <OfflineBanner />
+
       <main className={styles.main} id="main">
         {!ticker && (
           <div className={styles.hero}>
@@ -97,14 +101,19 @@ function AppContent() {
             </div>
 
             {ticker ? (
-              // Keying on the ticker discards all panel state on a new search,
-              // so the previous company's figures can never linger while the
-              // next one loads.
-              <Dashboard
-                key={ticker}
-                ticker={ticker}
-                watchlistAction={<WatchlistButton ticker={ticker} />}
-              />
+              // The boundary is scoped to the dashboard rather than wrapping
+              // the page: a crash while rendering one company's data leaves the
+              // header, search, and watchlist usable, so the user can simply
+              // search something else. `resetKeys` clears the error when they
+              // do. Keying on the ticker also discards all panel state on a new
+              // search, so the previous company's figures can never linger.
+              <ErrorBoundary label="dashboard" resetKeys={[ticker]}>
+                <Dashboard
+                  key={ticker}
+                  ticker={ticker}
+                  watchlistAction={<WatchlistButton ticker={ticker} />}
+                />
+              </ErrorBoundary>
             ) : (
               <Card>
                 <EmptyState
@@ -117,7 +126,9 @@ function AppContent() {
           </div>
 
           <aside className={styles.sidebar} aria-label="Watchlist">
-            <WatchlistPanel activeTicker={ticker} onSelect={setTicker} />
+            <ErrorBoundary label="watchlist">
+              <WatchlistPanel activeTicker={ticker} onSelect={setTicker} />
+            </ErrorBoundary>
           </aside>
         </div>
       </main>
@@ -141,8 +152,13 @@ function AppContent() {
 
 export default function App() {
   return (
-    <WatchlistProvider>
-      <AppContent />
-    </WatchlistProvider>
+    // Outermost boundary: a last resort for a crash in the shell itself, so the
+    // user still gets an explanation and a reload button rather than a blank
+    // white page.
+    <ErrorBoundary label="application">
+      <WatchlistProvider>
+        <AppContent />
+      </WatchlistProvider>
+    </ErrorBoundary>
   )
 }

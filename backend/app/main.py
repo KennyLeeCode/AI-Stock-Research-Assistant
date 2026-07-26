@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import Settings, get_settings
 from app.core.exceptions import register_exception_handlers
+from app.core.middleware import REQUEST_ID_HEADER, RequestContextMiddleware
 from app.database import init_db
 from app.routers import research as research_router
 from app.routers import stocks as stocks_router
@@ -85,12 +86,20 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json" if settings.is_development else None,
     )
 
+    # Middleware runs outermost-first in the order added, so the request-context
+    # middleware is registered before CORS in order to tag and log every
+    # request — including CORS preflight rejections.
+    app.add_middleware(RequestContextMiddleware)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,
         allow_credentials=False,
         allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type"],
+        allow_headers=["Content-Type", REQUEST_ID_HEADER],
+        # Without this the browser cannot read the id off the response, which
+        # would make it useless for reporting a problem from the UI.
+        expose_headers=[REQUEST_ID_HEADER],
     )
 
     register_exception_handlers(app)

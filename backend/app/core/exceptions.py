@@ -6,7 +6,10 @@ branch on, and a human-readable message that is safe to show a user.
 
 Anything *not* an `AppError` is treated as a bug: it is logged with a full
 traceback server-side and returned to the client as a generic 500, so internal
-details and provider URLs (which may contain API keys) never leak.
+details and provider URLs (which may contain API keys) never leak. Server
+errors do carry the request id, which is the only piece of internal state that
+is safe — and useful — to expose, because it lets a user quote it in a bug
+report and lets an operator find the exact traceback.
 
 Framework errors are normalized too. Starlette raises its own `HTTPException`
 for unmatched routes and unsupported methods, which by default renders as
@@ -26,6 +29,8 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.core.middleware import REQUEST_ID_HEADER, get_request_id
 
 logger = logging.getLogger(__name__)
 
@@ -199,38 +204,85 @@ def _framework_error_code(status_code: int) -> str:
     return "client_error" if status_code < 500 else "internal_error"
 
 
+def _with_request_id(
+    payload: dict[str, Any], request: Request, *, status_code: int
+) -> dict[str, Any]:
+    """Attach the request id to server-error payloads.
+
+    Only for 5xx: a client error is the caller's to fix and needs no correlation
+    id, whereas a server error is something the operator must be able to look
+    up in the logs from a user's bug report.
+    """
+    if status_code < 500:
+        return payload
+    request_id = get_request_id(request)
+    if request_id:
+        payload["error"]["request_id"] = request_id
+    return payload
+
+
+def _id_headers(request: Request, extra: dict[str, str] | None = None) -> dict[str, str]:
+    """Response headers carrying the request id.
+
+    The middleware sets this header on normal responses, but an unhandled
+    exception unwinds *past* it — Starlette's outermost error middleware builds
+    that response, so the middleware never gets to touch it. Setting the header
+    here as well guarantees it is present on every error response, which is
+    precisely when a caller needs it.
+    """
+    headers = dict(extra or {})
+    request_id = get_request_id(request)
+    if request_id:
+        headers[REQUEST_ID_HEADER] = request_id
+    return headers
+
+
 # --------------------------------------------------------------------------
 # Handlers
 # --------------------------------------------------------------------------
-async def app_error_handler(_request: Request, exc: AppError) -> JSONResponse:
+async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     """Render an `AppError` as its declared status code and JSON payload."""
     log = logger.warning if exc.status_code < 500 else logger.error
-    log("%s (%s): %s", type(exc).__name__, exc.code, exc.message, extra={"details": exc.details})
-    return JSONResponse(status_code=exc.status_code, content=exc.to_payload())
+    log(
+        "%s (%s): %s [%s]",
+        type(exc).__name__,
+        exc.code,
+        exc.message,
+        get_request_id(request) or "-",
+        extra={"details": exc.details},
+    )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=_with_request_id(
+            exc.to_payload(), request, status_code=exc.status_code
+        ),
+        headers=_id_headers(request),
+    )
 
 
 async def http_exception_handler(
-    _request: Request, exc: StarletteHTTPException
+    request: Request, exc: StarletteHTTPException
 ) -> JSONResponse:
     """Render Starlette's own HTTP errors in the application envelope.
 
     Covers unmatched routes (404) and unsupported methods (405), which would
     otherwise be the only responses in the API without an `error.code`.
     """
+    payload = {
+        "error": {
+            "code": _framework_error_code(exc.status_code),
+            "message": str(exc.detail),
+        }
+    }
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "error": {
-                "code": _framework_error_code(exc.status_code),
-                "message": str(exc.detail),
-            }
-        },
-        headers=getattr(exc, "headers", None),
+        content=_with_request_id(payload, request, status_code=exc.status_code),
+        headers=_id_headers(request, getattr(exc, "headers", None)),
     )
 
 
 async def validation_error_handler(
-    _request: Request, exc: RequestValidationError
+    request: Request, exc: RequestValidationError
 ) -> JSONResponse:
     """Render FastAPI request-validation failures in our error envelope.
 
@@ -240,6 +292,11 @@ async def validation_error_handler(
     handler, which turns a 422 into a 500. `jsonable_encoder` coerces those
     objects to strings first.
     """
+    logger.warning(
+        "Request validation failed for %s [%s]",
+        request.url.path,
+        get_request_id(request) or "-",
+    )
     return JSONResponse(
         status_code=422,
         content={
@@ -249,20 +306,25 @@ async def validation_error_handler(
                 "details": {"errors": jsonable_encoder(exc.errors())},
             }
         },
+        headers=_id_headers(request),
     )
 
 
-async def unhandled_error_handler(_request: Request, exc: Exception) -> JSONResponse:
+async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch-all. Logs the traceback; returns no internal detail to the client."""
-    logger.exception("Unhandled exception: %s", exc)
+    request_id = get_request_id(request)
+    logger.exception("Unhandled exception [%s]: %s", request_id or "-", exc)
+
+    payload: dict[str, Any] = {
+        "error": {
+            "code": "internal_error",
+            "message": "An unexpected error occurred.",
+        }
+    }
+    if request_id:
+        payload["error"]["request_id"] = request_id
     return JSONResponse(
-        status_code=500,
-        content={
-            "error": {
-                "code": "internal_error",
-                "message": "An unexpected error occurred.",
-            }
-        },
+        status_code=500, content=payload, headers=_id_headers(request)
     )
 
 
