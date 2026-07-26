@@ -7,6 +7,13 @@ branch on, and a human-readable message that is safe to show a user.
 Anything *not* an `AppError` is treated as a bug: it is logged with a full
 traceback server-side and returned to the client as a generic 500, so internal
 details and provider URLs (which may contain API keys) never leak.
+
+Framework errors are normalized too. Starlette raises its own `HTTPException`
+for unmatched routes and unsupported methods, which by default renders as
+`{"detail": "Not Found"}` — a different shape from everything else. Since the
+frontend branches on `error.code`, a single response that omits it would be a
+crash rather than a handled state, so those are re-rendered in the same
+envelope. **Every** error response from this API has the same shape.
 """
 
 from __future__ import annotations
@@ -15,8 +22,10 @@ import logging
 from typing import Any
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -167,6 +176,30 @@ class ConfigurationError(AppError):
 
 
 # --------------------------------------------------------------------------
+# Framework error normalization
+# --------------------------------------------------------------------------
+# Stable codes for errors Starlette raises before our code runs.
+_FRAMEWORK_ERROR_CODES: dict[int, str] = {
+    400: "bad_request",
+    401: "unauthorized",
+    403: "forbidden",
+    404: "not_found",
+    405: "method_not_allowed",
+    406: "not_acceptable",
+    413: "payload_too_large",
+    415: "unsupported_media_type",
+    429: "rate_limited",
+}
+
+
+def _framework_error_code(status_code: int) -> str:
+    """Map an HTTP status to a stable error code."""
+    if status_code in _FRAMEWORK_ERROR_CODES:
+        return _FRAMEWORK_ERROR_CODES[status_code]
+    return "client_error" if status_code < 500 else "internal_error"
+
+
+# --------------------------------------------------------------------------
 # Handlers
 # --------------------------------------------------------------------------
 async def app_error_handler(_request: Request, exc: AppError) -> JSONResponse:
@@ -176,17 +209,44 @@ async def app_error_handler(_request: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(status_code=exc.status_code, content=exc.to_payload())
 
 
+async def http_exception_handler(
+    _request: Request, exc: StarletteHTTPException
+) -> JSONResponse:
+    """Render Starlette's own HTTP errors in the application envelope.
+
+    Covers unmatched routes (404) and unsupported methods (405), which would
+    otherwise be the only responses in the API without an `error.code`.
+    """
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": {
+                "code": _framework_error_code(exc.status_code),
+                "message": str(exc.detail),
+            }
+        },
+        headers=getattr(exc, "headers", None),
+    )
+
+
 async def validation_error_handler(
     _request: Request, exc: RequestValidationError
 ) -> JSONResponse:
-    """Render FastAPI request-validation failures in our error envelope."""
+    """Render FastAPI request-validation failures in our error envelope.
+
+    `exc.errors()` is not directly JSON-serializable: when a field validator
+    raises, Pydantic puts the original exception object into the entry's `ctx`.
+    Passing that straight to `JSONResponse` raises `TypeError` inside the
+    handler, which turns a 422 into a 500. `jsonable_encoder` coerces those
+    objects to strings first.
+    """
     return JSONResponse(
         status_code=422,
         content={
             "error": {
                 "code": "validation_error",
                 "message": "The request was rejected by input validation.",
-                "details": {"errors": exc.errors()},
+                "details": {"errors": jsonable_encoder(exc.errors())},
             }
         },
     )
@@ -209,5 +269,6 @@ async def unhandled_error_handler(_request: Request, exc: Exception) -> JSONResp
 def register_exception_handlers(app: FastAPI) -> None:
     """Attach all error handlers to the application."""
     app.add_exception_handler(AppError, app_error_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(StarletteHTTPException, http_exception_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, unhandled_error_handler)

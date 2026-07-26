@@ -16,6 +16,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import Settings, get_settings
 from app.core.exceptions import register_exception_handlers
 from app.database import init_db
+from app.routers import research as research_router
+from app.routers import stocks as stocks_router
+from app.routers import watchlist as watchlist_router
 from app.services.providers import close_provider
 from app.services.research_service import close_ai_client
 
@@ -110,8 +113,9 @@ def create_app() -> FastAPI:
             },
         }
 
-    # Routers for stocks, research, and the watchlist are mounted in a later
-    # phase; they attach here under API_PREFIX.
+    app.include_router(stocks_router.router, prefix=API_PREFIX)
+    app.include_router(research_router.router, prefix=API_PREFIX)
+    app.include_router(watchlist_router.router, prefix=API_PREFIX)
 
     return app
 
