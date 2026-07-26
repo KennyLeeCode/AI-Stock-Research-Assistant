@@ -95,20 +95,65 @@
   font-size: var(--text-lg);
 }
 
-/* Responsive without a single fixed breakpoint: columns are added only when
-   there is room for another 300px track. */
-.grid {
-  display: grid;
-  gap: var(--space-4);
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
-}
-
 .statusRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-6);
+}
+
+/* ==========================================================================
+   Layout
+
+   Content comes first in the DOM so keyboard and screen reader users reach the
+   search and dashboard before a secondary list. On wide screens the sidebar is
+   placed into the left column with explicit grid positioning, which gets the
+   visual order right without reordering the document.
+   ========================================================================== */
+.layout {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+
+.content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.sidebar {
+  min-width: 0;
+}
+
+.chips {
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 68rem) {
+  .layout {
+    grid-template-columns: 264px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .sidebar {
+    grid-column: 1;
+    grid-row: 1;
+    /* Follows the page while the dashboard scrolls. */
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-4));
+  }
+
+  .content {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  /* The chip row is the narrow-screen affordance; the sidebar replaces it. */
+  .chips {
+    display: none;
+  }
 }
 
 .footer {
@@ -130,10 +175,4 @@
   font-size: var(--text-xs);
   line-height: var(--leading-relaxed);
   color: var(--text-tertiary);
-}
-
-.swatches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
 }

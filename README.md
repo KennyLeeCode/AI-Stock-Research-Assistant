@@ -22,22 +22,26 @@ actually working today, not what is planned.
 | 2 | Backend setup (config, database, cache, errors) | Done |
 | 3 | Database models (watchlist) | Done |
 | 4 | Financial data service (Alpha Vantage provider) | Done |
-| 5 | Technical indicator service | Not started |
-| 6 | AI research service | Not started |
-| 7 | Backend routes | Not started |
-| 8 | Frontend setup | Not started |
-| 9 | Dashboard components | Not started |
-| 10 | Watchlist UI | Not started |
+| 5 | Technical indicator service | Done |
+| 6 | AI research service | Done |
+| 7 | Backend routes | Done |
+| 8 | Frontend setup | Done |
+| 9 | Dashboard components | Done |
+| 10 | Watchlist UI | Done |
 | 11 | Error handling | Not started |
 | 12 | Testing | Not started |
 | 13 | Docker and deployment | Not started |
 | 14 | Documentation | Not started |
 
-**What you can run right now:** the FastAPI backend, which serves
-`GET /api/health` and interactive API docs. The data layer underneath
-(provider, caching, validation, watchlist model) is complete and tested, but
-the HTTP endpoints that expose it land in Phase 7. There is no frontend yet —
-`frontend/` currently holds only its folder skeleton and env template.
+**What you can run right now:** the whole application. Start the backend and
+the frontend (see [Setup](#setup)), open <http://localhost:5173>, and search a
+ticker for a live quote, price chart, technical indicators, fundamentals, news,
+an on-demand AI research report, and a persistent watchlist. All nine API
+endpoints are live.
+
+Remaining phases harden rather than extend it: a global error boundary and
+offline handling, an automated test suite, container images, and final
+documentation.
 
 ---
 
@@ -161,12 +165,37 @@ detects untouched placeholders — if you leave `your_..._here` in place, it wil
 warn you at startup by name rather than failing later with a confusing
 authentication error from the upstream API.
 
-### 4. Run
+### 4. Frontend
 
 ```bash
-# from backend/, with the virtualenv active
+cd frontend
+npm install
+cp .env.example .env      # Windows: copy .env.example .env
+```
+
+### 5. Run both
+
+Two terminals.
+
+```bash
+# terminal 1 — backend
+cd backend
 uvicorn app.main:app --reload --port 8000
 ```
+
+```bash
+# terminal 2 — frontend
+cd frontend
+npm run dev
+```
+
+Then open **<http://localhost:5173>**.
+
+The dev server proxies `/api` to the backend, so the browser makes same-origin
+requests and never needs to know the backend's address — there is no host and
+no key to configure client-side.
+
+Backend startup output:
 
 Expected output:
 
@@ -183,10 +212,11 @@ If a key is missing you will also see, before that line:
 WARNING  app.main: ALPHA_VANTAGE_API_KEY is not set. Market data endpoints will fail.
 ```
 
-### 5. Verify
+### 6. Verify
 
 | URL | What it is |
 |---|---|
+| http://localhost:5173 | The application |
 | http://localhost:8000/api/health | Health and configuration check |
 | http://localhost:8000/docs | Interactive Swagger UI |
 | http://localhost:8000/redoc | ReDoc API reference |
