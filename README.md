@@ -29,7 +29,7 @@ actually working today, not what is planned.
 | 9 | Dashboard components | Done |
 | 10 | Watchlist UI | Done |
 | 11 | Error handling | Not started |
-| 12 | Testing | Not started |
+| 12 | Testing | Done |
 | 13 | Docker and deployment | Not started |
 | 14 | Documentation | Not started |
 
@@ -428,6 +428,30 @@ Errors share one envelope, with a stable `code` the frontend branches on:
 | `provider_timeout` | 504 | Upstream did not respond in time |
 
 ---
+
+## Tests
+
+```bash
+cd backend
+pytest                                      # 206 tests
+pytest --cov=app --cov-report=term-missing  # coverage report
+```
+
+No test makes a real network call: market-data requests are intercepted with
+`respx` and the AI client is replaced outright, so the suite costs nothing to
+run and cannot consume the daily API quota.
+
+Coverage is 93%. The tests concentrate on the invariants that are easiest to
+erode:
+
+| Area | What is pinned down |
+|---|---|
+| Data integrity | Provider sentinels (`"None"`, `"-"`, `""`) become `null`, never `0`; a genuine `0` survives; `inf` and `NaN` are rejected |
+| Indicators | RSI cross-checked against an independently written implementation; short history refuses rather than approximating; every null field carries a reason |
+| Provider | HTTP-200 error bodies map to the right exceptions; retry and timeout behaviour; the API key never appears in an exception or a log line |
+| API | All nine endpoints, their error paths, and cache behaviour |
+| Research | The AI response schema cannot contain a numeric field; unbalanced reports fail validation; the disclaimer is fixed server-side |
+| Errors | Every response uses one envelope; 500s carry a request id and disclose nothing else |
 
 ## Known limitations
 
