@@ -17,6 +17,7 @@ from app.config import Settings, get_settings
 from app.core.exceptions import register_exception_handlers
 from app.database import init_db
 from app.services.providers import close_provider
+from app.services.research_service import close_ai_client
 
 API_PREFIX = "/api"
 APP_VERSION = "0.1.0"
@@ -53,9 +54,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     try:
         yield
     finally:
-        # Release the provider's HTTP connection pool so shutdown is clean and
+        # Release both outbound HTTP connection pools so shutdown is clean and
         # tests do not leak sockets between runs.
         await close_provider()
+        await close_ai_client()
         logger.info("%s shutting down", settings.app_name)
 
 
