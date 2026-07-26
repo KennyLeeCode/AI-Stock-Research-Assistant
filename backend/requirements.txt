@@ -1,3 +1,6 @@
+# Runtime dependencies only. Test tooling lives in requirements-dev.txt so the
+# production container does not ship pytest and its transitive dependencies.
+#
 # Python 3.12 or 3.13 recommended.
 
 # --- Web framework ---
@@ -17,13 +20,6 @@ httpx==0.28.1
 # --- AI provider ---
 # Structured outputs (output_config.format) require a recent SDK.
 anthropic==0.120.0
-
-# --- Testing ---
-pytest==9.1.1
-pytest-asyncio==1.4.0
-pytest-cov==7.1.0
-# Intercepts httpx calls so the suite never touches a real market data API.
-respx==0.23.1
 
 # Optional database drivers — install only when moving off SQLite:
 #   PostgreSQL: psycopg[binary]

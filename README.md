@@ -30,7 +30,7 @@ actually working today, not what is planned.
 | 10 | Watchlist UI | Done |
 | 11 | Error handling | Not started |
 | 12 | Testing | Done |
-| 13 | Docker and deployment | Not started |
+| 13 | Docker and deployment | Done |
 | 14 | Documentation | Not started |
 
 **What you can run right now:** the whole application. Start the backend and
@@ -136,7 +136,7 @@ cd backend
 py -3.13 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 copy .env.example .env
 ```
 
@@ -147,7 +147,7 @@ cd backend
 python3.13 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 cp .env.example .env
 ```
 
@@ -428,6 +428,57 @@ Errors share one envelope, with a stable `code` the frontend branches on:
 | `provider_timeout` | 504 | Upstream did not respond in time |
 
 ---
+
+## Docker
+
+The whole stack runs in two containers. Only the frontend is published; nginx
+serves the built app and proxies `/api` to the backend over the internal
+network, so every request is same-origin — no CORS to configure and no backend
+hostname compiled into the JavaScript bundle.
+
+```bash
+cp backend/.env.example backend/.env     # then add your two API keys
+docker compose up --build
+```
+
+Open **<http://localhost:8080>**.
+
+| Service | Base image | Notes |
+|---|---|---|
+| `backend` | `python:3.13-slim` | Runs as UID 1000, not root. Not published to the host. SQLite lives on a named volume. |
+| `frontend` | `nginxinc/nginx-unprivileged:1.29-alpine` | Multi-stage: Node builds, nginx serves. No Node or `node_modules` in the final image. |
+
+The frontend waits for the backend's health check to pass rather than merely
+for its container to start, so nginx never proxies to a backend that is still
+creating its schema.
+
+### PostgreSQL
+
+```bash
+docker compose --profile postgres up --build
+```
+
+Then in `backend/.env`:
+
+```ini
+DATABASE_URL=postgresql+psycopg://stock:stock@postgres:5432/stockresearch
+```
+
+and add `psycopg[binary]` to `backend/requirements.txt`. No application code
+changes — the models avoid engine-specific types and name their constraints
+explicitly so the schema is portable.
+
+### Deployment notes
+
+- **Set `ENVIRONMENT` to anything other than `development`** in production.
+  That disables `/docs`, `/redoc`, and `/openapi.json`.
+- **The backend is intentionally not published** to the host in
+  `docker-compose.yml`. Add `ports: ["8000:8000"]` temporarily if you need to
+  reach the API directly while debugging.
+- **`backend/.env` is never copied into an image.** Both `.dockerignore` files
+  exclude it; secrets are injected at runtime via `env_file`.
+- **The SQLite database is on a named volume** (`backend_data`), so it survives
+  `docker compose down`. `docker compose down -v` deletes it.
 
 ## Tests
 

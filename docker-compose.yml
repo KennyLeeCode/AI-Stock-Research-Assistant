@@ -1,0 +1,93 @@
+# Runs the whole application:
+#
+#   docker compose up --build          -> http://localhost:8080
+#
+# The browser only ever talks to the frontend container. nginx serves the built
+# app and proxies /api to the backend on the internal network, so the backend
+# is not published to the host at all and there is no CORS to configure.
+#
+# PostgreSQL is available behind a profile:
+#
+#   docker compose --profile postgres up --build
+
+services:
+  backend:
+    build:
+      context: ./backend
+    # `env_file` is not committed. Copy backend/.env.example to backend/.env
+    # and fill in the two API keys before starting.
+    env_file:
+      - ./backend/.env
+    environment:
+      # Overrides whatever DATABASE_URL is in .env so the container writes to
+      # the named volume rather than a path from the host machine. Four slashes
+      # because the path is absolute.
+      DATABASE_URL: sqlite:////data/stock_research.db
+      ENVIRONMENT: production
+      # nginx proxies same-origin, so no browser origin ever needs allowing.
+      # Left empty rather than permissive.
+      CORS_ORIGINS: ""
+    volumes:
+      - backend_data:/data
+    # Deliberately not published to the host. Nothing outside the compose
+    # network needs to reach the API directly, and exposing it would bypass
+    # the proxy. Add `ports: ["8000:8000"]` temporarily to debug it directly.
+    expose:
+      - "8000"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import urllib.request, sys
+          sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4).status == 200 else 1)
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      # host:container. The container listens on 8080 because it runs as a
+      # non-root user that cannot bind a privileged port.
+      - "8080:8080"
+    depends_on:
+      backend:
+        # Waits for the health check to pass, not merely for the container to
+        # start. Without this, nginx can begin proxying to a backend that is
+        # still creating its database schema.
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Optional PostgreSQL. Start with:  docker compose --profile postgres up
+  #
+  # Then point the backend at it by setting, in backend/.env:
+  #   DATABASE_URL=postgresql+psycopg://stock:stock@postgres:5432/stockresearch
+  # and adding `psycopg[binary]` to backend/requirements.txt.
+  # ---------------------------------------------------------------------------
+  postgres:
+    profiles: ["postgres"]
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: stock
+      POSTGRES_PASSWORD: stock
+      POSTGRES_DB: stockresearch
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stock -d stockresearch"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  backend_data:
+  postgres_data:

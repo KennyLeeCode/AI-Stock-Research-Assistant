@@ -1,0 +1,33 @@
+# node_modules is the important one here: it is large, platform-specific, and
+# `npm ci` reinstalls it inside the image anyway. Copying the host's copy would
+# slow every build and can break native modules built for a different OS.
+
+node_modules/
+dist/
+dist-ssr/
+
+# ---- Secrets ----
+# No VITE_* value is secret, but a local .env should still not be baked into a
+# layer where it would override the build-time settings.
+.env
+.env.*
+!.env.example
+
+# ---- Caches ----
+.vite/
+*.tsbuildinfo
+.eslintcache
+
+# ---- Editor / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- Logs ----
+*.log
+npm-debug.log*
+
+# ---- Docker's own files ----
+Dockerfile
+.dockerignore

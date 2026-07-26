@@ -1,0 +1,43 @@
+# Everything here is excluded from the build context. Two reasons that matter:
+# a smaller context uploads faster, and `.env` must never be baked into an
+# image layer where anyone with the image can read it.
+
+# ---- Secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Virtualenvs ----
+.venv/
+venv/
+ENV/
+
+# ---- Python artefacts ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+
+# ---- Tests and coverage (not shipped in the runtime image) ----
+tests/
+pytest.ini
+requirements-dev.txt
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ---- Local database ----
+*.db
+*.sqlite
+*.sqlite3
+
+# ---- Editor / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- Docker's own files ----
+Dockerfile
+.dockerignore
