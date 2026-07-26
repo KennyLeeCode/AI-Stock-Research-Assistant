@@ -1,15 +1,9 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 
 import { fetchHealth } from '@/api/endpoints'
-import {
-  Badge,
-  Button,
-  Card,
-  EmptyState,
-  ErrorState,
-  Skeleton,
-  SkeletonText,
-} from '@/components/ui'
+import { Dashboard } from '@/components/Dashboard'
+import { SearchBar } from '@/components/SearchBar'
+import { Badge, Card, EmptyState } from '@/components/ui'
 import { useAsyncData } from '@/hooks/useAsyncData'
 import type { HealthResponse } from '@/types/api'
 
@@ -34,27 +28,14 @@ function LogoMark() {
   )
 }
 
-/**
- * Application shell.
- *
- * At this stage it renders the header, footer, and a live connection check
- * against the backend, which is enough to prove the API client, error
- * normalization, design tokens, primitives, and data hook all work together.
- * The search bar and dashboard panels replace the placeholder region in the
- * next phase.
- */
 export default function App() {
+  const [ticker, setTicker] = useState<string | null>(null)
+
   const fetchHealthStatus = useCallback(
     (signal: AbortSignal) => fetchHealth({ signal }),
     [],
   )
-
-  const {
-    data: health,
-    error,
-    loading,
-    reload,
-  } = useAsyncData<HealthResponse>(fetchHealthStatus, [])
+  const { data: health } = useAsyncData<HealthResponse>(fetchHealthStatus, [])
 
   const marketDataReady = health?.dependencies.market_data_configured ?? false
   const aiReady = health?.dependencies.ai_configured ?? false
@@ -79,75 +60,47 @@ export default function App() {
             </div>
           </div>
 
-          {health && (
+          {health && !(marketDataReady && aiReady) && (
             <div className={styles.statusRow}>
-              <Badge tone={marketDataReady ? 'positive' : 'warning'}>
-                {marketDataReady
-                  ? 'Market data ready'
-                  : 'Market data key missing'}
-              </Badge>
-              <Badge tone={aiReady ? 'positive' : 'warning'}>
-                {aiReady ? 'AI ready' : 'AI key missing'}
-              </Badge>
+              {!marketDataReady && (
+                <Badge tone="warning">Market data key missing</Badge>
+              )}
+              {!aiReady && <Badge tone="warning">AI key missing</Badge>}
             </div>
           )}
         </div>
       </header>
 
       <main className={styles.main} id="main">
-        <div className={styles.hero}>
-          <h1 className={styles.heroTitle}>Research any listed company</h1>
-          <p className={styles.heroText}>
-            Search a ticker for a live quote, price history, fundamentals,
-            technical indicators, recent news, and a balanced AI research report
-            grounded strictly in that data.
-          </p>
+        {!ticker && (
+          <div className={styles.hero}>
+            <h1 className={styles.heroTitle}>Research any listed company</h1>
+            <p className={styles.heroText}>
+              Search a ticker for a live quote, price history, fundamentals,
+              technical indicators, recent news, and a balanced AI research
+              report grounded strictly in that data.
+            </p>
+          </div>
+        )}
+
+        <div style={{ marginBottom: 'var(--space-6)' }}>
+          <SearchBar onSearch={setTicker} initialValue={ticker ?? ''} />
         </div>
 
-        <div className={styles.grid}>
-          <Card
-            title="Backend connection"
-            action={
-              <Button size="sm" loading={loading} onClick={reload}>
-                Recheck
-              </Button>
-            }
-          >
-            {loading && !health ? (
-              <div aria-busy="true" aria-label="Checking backend connection">
-                <Skeleton variant="heading" width="45%" />
-                <SkeletonText lines={2} />
-              </div>
-            ) : error ? (
-              <ErrorState error={error} onRetry={reload} compact />
-            ) : health ? (
-              <p>
-                Connected to <strong>{health.app}</strong> v{health.version} in{' '}
-                {health.environment} mode.
-              </p>
-            ) : null}
-          </Card>
-
-          <Card title="Search">
+        {ticker ? (
+          // Keying on the ticker discards all panel state on a new search, so
+          // the previous company's figures can never linger while the next
+          // one loads.
+          <Dashboard key={ticker} ticker={ticker} />
+        ) : (
+          <Card>
             <EmptyState
-              title="No ticker selected"
-              description="The search bar and dashboard land in the next phase."
-              hint="Try AAPL, MSFT, or NVDA once it is wired up."
-              compact
+              title="Search a ticker to begin"
+              description="Enter a symbol above, or pick one of the examples, to load its dashboard."
+              hint="Market data is cached, so revisiting a company you have already looked up costs nothing."
             />
           </Card>
-
-          <Card title="Design system" subtitle="Primitives shared by every panel">
-            <div className={styles.swatches}>
-              <Badge tone="positive">+1.25%</Badge>
-              <Badge tone="negative">-0.84%</Badge>
-              <Badge tone="neutral">Unchanged</Badge>
-              <Badge tone="accent">Cached</Badge>
-              <Badge tone="warning">Overbought</Badge>
-              <Badge tone="outline">Alpha Vantage</Badge>
-            </div>
-          </Card>
-        </div>
+        )}
       </main>
 
       <footer className={styles.footer}>
