@@ -125,8 +125,8 @@ isn't a suggestion in the prompt, it's a validation rule.
 ### Docker
 
 ```bash
-git clone https://github.com/KennyLeeCode/AI-Stock-Research-Assistant.git
-cd AI-Stock-Research-Assistant
+git clone https://github.com/KennyLeeCode/AI-Stock-Research-Platform.git
+cd AI-Stock-Research-Platform
 
 cp backend/.env.example backend/.env    # then paste your API keys in
 docker compose up --build
