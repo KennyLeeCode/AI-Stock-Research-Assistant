@@ -18,7 +18,7 @@ interface SkeletonProps {
  * content does not jump when it arrives, and it communicates *what* is loading
  * rather than merely that something is.
  *
- * Marked `aria-hidden` — the loading state is announced once by the containing
+ * Marked `aria-hidden` - the loading state is announced once by the containing
  * region's `aria-busy`, not repeated by every placeholder bar.
  */
 export function Skeleton({

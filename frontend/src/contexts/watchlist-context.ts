@@ -23,8 +23,8 @@ export interface WatchlistContextValue {
 
 /**
  * Watchlist state, shared between the sidebar and the save button in the quote
- * header. Both must reflect the same list instantly — saving from the header
- * has to appear in the sidebar without a refetch — which is what makes this
+ * header. Both must reflect the same list instantly - saving from the header
+ * has to appear in the sidebar without a refetch - which is what makes this
  * shared rather than local state.
  *
  * The context object lives in its own module so `WatchlistProvider.tsx` exports

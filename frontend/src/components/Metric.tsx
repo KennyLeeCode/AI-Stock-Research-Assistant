@@ -23,8 +23,8 @@ interface MetricProps {
 /**
  * One labelled figure.
  *
- * A value equal to the em dash is styled as absent — dimmer and lighter weight
- * — so a missing metric visually reads as missing rather than as a number the
+ * A value equal to the em dash is styled as absent - dimmer and lighter weight
+ * - so a missing metric visually reads as missing rather than as a number the
  * reader should try to interpret.
  */
 export function Metric({
@@ -96,7 +96,7 @@ export function ChangeValue({
   // Prefer the percentage for direction; fall back to the absolute change.
   const direction = directionOf(changePercent ?? change)
   const arrow =
-    direction === 'positive' ? '▲' : direction === 'negative' ? '▼' : '–'
+    direction === 'positive' ? '▲' : direction === 'negative' ? '▼' : '-'
 
   return (
     <span

@@ -2,7 +2,7 @@
  * TypeScript mirrors of the backend's Pydantic schemas.
  *
  * Rule: every field the backend types as `float | None` is `number | null`
- * here — never `number | undefined` and never an optional `?`. That distinction
+ * here - never `number | undefined` and never an optional `?`. That distinction
  * carries real meaning in this app. `null` means the data provider genuinely
  * had no value for that metric, and the UI must render an em dash rather than a
  * zero. Making these optional would let a component silently fall back to a
@@ -78,7 +78,7 @@ export interface CompanyOverview extends ProviderPayload {
   book_value: number | null
   analyst_target_price: number | null
 
-  // Profitability — fractions, not percentages: 0.25 means 25%.
+  // Profitability - fractions, not percentages: 0.25 means 25%.
   eps: number | null
   profit_margin: number | null
   operating_margin: number | null
@@ -91,7 +91,7 @@ export interface CompanyOverview extends ProviderPayload {
   ebitda: number | null
   shares_outstanding: number | null
 
-  // Dividend & risk — dividend_yield is a fraction: 0.0044 means 0.44%.
+  // Dividend & risk - dividend_yield is a fraction: 0.0044 means 0.44%.
   dividend_yield: number | null
   dividend_per_share: number | null
   beta: number | null
@@ -118,6 +118,11 @@ export interface NewsFeed extends ProviderPayload {
   symbol: string
   /** Newest first. An empty array is a valid result, not an error. */
   articles: NewsArticle[]
+  /**
+   * Why the feed is empty, when the reason is not simply that no articles
+   * exist - for example, the endpoint requiring a paid plan.
+   */
+  note: string | null
 }
 
 /* ==========================================================================
@@ -149,13 +154,13 @@ export interface TechnicalIndicators {
   sma_20: number | null
   sma_50: number | null
 
-  // Momentum — 0 to 100.
+  // Momentum - 0 to 100.
   rsi_14: number | null
 
-  // Risk — annualized percent: 24.5 means 24.5%.
+  // Risk - annualized percent: 24.5 means 24.5%.
   volatility_30d: number | null
 
-  // Performance — percent.
+  // Performance - percent.
   price_change_1m: number | null
   price_change_3m: number | null
 

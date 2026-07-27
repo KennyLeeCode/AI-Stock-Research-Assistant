@@ -66,7 +66,7 @@ export function useAsyncData<T>(
       .current(controller.signal)
       .then((result) => {
         // `active` guards against a resolved response arriving after this
-        // effect was cleaned up — aborting alone does not stop an
+        // effect was cleaned up - aborting alone does not stop an
         // already-settled promise from running its handler.
         if (!active) return
         setData(result)

@@ -1,7 +1,7 @@
 """The project's central rule: missing data stays missing.
 
 A metric the provider did not supply must arrive as `None` and never as `0`.
-These tests exist because that distinction is easy to erode — one `or 0` added
+These tests exist because that distinction is easy to erode - one `or 0` added
 in a hurry would turn "this company has no P/E ratio" into "this company has a
 P/E ratio of zero", which is a fabricated figure presented as a measurement.
 """

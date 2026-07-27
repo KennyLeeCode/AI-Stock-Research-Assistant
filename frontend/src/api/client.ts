@@ -1,8 +1,8 @@
 /**
  * Axios instance and error normalization.
  *
- * Every failure mode — a backend error envelope, a network drop, a timeout, an
- * aborted request — is converted into a single `ApiError` type. Components then
+ * Every failure mode - a backend error envelope, a network drop, a timeout, an
+ * aborted request - is converted into a single `ApiError` type. Components then
  * have exactly one shape to handle, and can branch on a stable `code` rather
  * than parsing messages or checking status numbers inline.
  *
@@ -145,7 +145,7 @@ export function toApiError(error: unknown): ApiError {
       )
     }
 
-    // A response with an unrecognized body — a proxy error page, for example.
+    // A response with an unrecognized body - a proxy error page, for example.
     // Read the status off the response rather than the nullable local, so the
     // server/client split below is provably non-null.
     const responseStatus = error.response.status

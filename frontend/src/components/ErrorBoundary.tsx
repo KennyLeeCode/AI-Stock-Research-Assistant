@@ -33,7 +33,7 @@ function keysChanged(
 /**
  * Catches render-time crashes and shows a recoverable fallback.
  *
- * This is the one thing hooks cannot do — React only reports render errors to
+ * This is the one thing hooks cannot do - React only reports render errors to
  * class components. Without a boundary, an exception thrown while rendering
  * unmounts the entire tree and leaves a blank white page with nothing but a
  * console message, which is the worst possible failure mode for a user.

@@ -88,7 +88,7 @@ def create_app() -> FastAPI:
 
     # Middleware runs outermost-first in the order added, so the request-context
     # middleware is registered before CORS in order to tag and log every
-    # request — including CORS preflight rejections.
+    # request - including CORS preflight rejections.
     app.add_middleware(RequestContextMiddleware)
 
     app.add_middleware(
@@ -108,7 +108,7 @@ def create_app() -> FastAPI:
     def health() -> dict[str, object]:
         """Liveness and readiness probe.
 
-        Reports whether required credentials are present as booleans only —
+        Reports whether required credentials are present as booleans only -
         never the values themselves.
         """
         return {

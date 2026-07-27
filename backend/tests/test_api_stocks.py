@@ -7,7 +7,7 @@ import pytest
 import respx
 from fastapi.testclient import TestClient
 
-from .conftest import ALPHA_VANTAGE_URL, QUOTE_PAYLOAD
+from .conftest import FMP_QUOTE, FMP_URL
 
 
 class TestQuote:
@@ -17,8 +17,8 @@ class TestQuote:
 
         body = response.json()
         assert body["symbol"] == "AAPL"
-        assert body["price"] == pytest.approx(186.40)
-        assert body["source"] == "Alpha Vantage"
+        assert body["price"] == pytest.approx(336.91)
+        assert body["source"] == "Financial Modeling Prep"
         assert body["retrieved_at"]
 
     def test_lowercase_input_is_normalized(
@@ -50,12 +50,13 @@ class TestOverview:
     ) -> None:
         body = client.get("/api/stocks/AAPL/overview").json()
 
-        assert body["pe_ratio"] == pytest.approx(31.2)
-        assert body["peg_ratio"] is None
+        assert body["pe_ratio"] == pytest.approx(40.64, rel=1e-3)
+        # FMP does not offer a forward P/E on any plan, so it is absent rather
+        # than zero. This is the rule the whole project is built around.
         assert body["forward_pe"] is None
-        assert body["ebitda"] is None
-        # The rule this whole project is built around.
-        assert body["peg_ratio"] != 0
+        assert body["analyst_target_price"] is None
+        assert body["fiscal_year_end"] is None
+        assert body["forward_pe"] != 0
 
 
 class TestIndicators:
@@ -77,12 +78,18 @@ class TestIndicators:
 
 
 class TestNews:
-    def test_drops_unrenderable_articles(
+    def test_empty_feed_explains_itself(
         self, client: TestClient, market_data
     ) -> None:
+        """News needs a paid FMP plan, so the feed carries a reason.
+
+        Returning an empty list with no explanation would let the UI imply the
+        company has no coverage, which is not what happened.
+        """
         body = client.get("/api/stocks/AAPL/news", params={"limit": 5}).json()
-        assert len(body["articles"]) == 1
-        assert body["articles"][0]["url"].startswith("https://")
+        assert body["articles"] == []
+        assert body["note"]
+        assert "plan" in body["note"].lower()
 
     @pytest.mark.parametrize("limit", [0, 999])
     def test_out_of_range_limit_rejected(
@@ -129,7 +136,7 @@ class TestUpstreamFailures:
 
     def test_timeout_is_504(self, client: TestClient) -> None:
         with respx.mock(assert_all_called=False) as router:
-            router.get(ALPHA_VANTAGE_URL).mock(
+            router.get(url__startswith=FMP_URL).mock(
                 side_effect=httpx.ConnectTimeout("timed out")
             )
             response = client.get("/api/stocks/AAPL/quote")
@@ -138,7 +145,7 @@ class TestUpstreamFailures:
 
     def test_upstream_5xx_is_502(self, client: TestClient) -> None:
         with respx.mock(assert_all_called=False) as router:
-            router.get(ALPHA_VANTAGE_URL).mock(
+            router.get(url__startswith=FMP_URL).mock(
                 return_value=httpx.Response(500, text="boom")
             )
             response = client.get("/api/stocks/AAPL/quote")
@@ -166,6 +173,17 @@ class TestCaching:
         client.get("/api/stocks/MSFT/quote")
         assert market_data.calls.call_count == 2
 
+    def test_overview_is_cached_as_a_unit(
+        self, client: TestClient, market_data
+    ) -> None:
+        """One overview is four upstream calls; a repeat must be zero."""
+        client.get("/api/stocks/AAPL/overview")
+        after_first = market_data.calls.call_count
+        assert after_first == 4
+
+        client.get("/api/stocks/AAPL/overview")
+        assert market_data.calls.call_count == after_first
+
     def test_indicators_reuse_cached_history(
         self, client: TestClient, market_data
     ) -> None:
@@ -180,13 +198,13 @@ class TestCaching:
     def test_failures_are_not_cached(self, client: TestClient) -> None:
         """A transient outage must not persist for the length of a TTL."""
         with respx.mock(assert_all_called=False) as router:
-            router.get(ALPHA_VANTAGE_URL).mock(
+            router.get(url__startswith=FMP_URL).mock(
                 return_value=httpx.Response(500, text="boom")
             )
             assert client.get("/api/stocks/AAPL/quote").status_code == 502
 
         with respx.mock(assert_all_called=False) as router:
-            router.get(ALPHA_VANTAGE_URL).mock(
-                return_value=httpx.Response(200, json=QUOTE_PAYLOAD)
+            router.get(url__startswith=FMP_URL).mock(
+                return_value=httpx.Response(200, json=FMP_QUOTE)
             )
             assert client.get("/api/stocks/AAPL/quote").status_code == 200

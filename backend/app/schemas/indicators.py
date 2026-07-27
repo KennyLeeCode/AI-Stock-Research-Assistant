@@ -5,7 +5,7 @@ provider. Nothing is estimated and nothing is carried over from the provider's
 own analytics.
 
 Each indicator is optional. When there is not enough history to compute one
-honestly — a 50-day average needs 50 closes — the field is `None` and the
+honestly - a 50-day average needs 50 closes - the field is `None` and the
 `unavailable` map explains why in plain language, so the UI can show a specific
 reason instead of a blank cell.
 """

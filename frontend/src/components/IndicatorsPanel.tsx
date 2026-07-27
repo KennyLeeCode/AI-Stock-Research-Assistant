@@ -19,7 +19,7 @@ interface IndicatorsPanelProps {
  * Computed technical indicators.
  *
  * Any indicator the price history could not support is `null`, and the reason
- * comes from the backend's `unavailable` map — so a blank cell always carries a
+ * comes from the backend's `unavailable` map - so a blank cell always carries a
  * specific explanation ("a 50-day average needs 50 closes; only 25 are
  * available") rather than leaving the reader to guess whether the figure is
  * missing, zero, or broken.

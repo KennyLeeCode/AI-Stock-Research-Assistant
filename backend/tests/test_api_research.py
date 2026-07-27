@@ -1,6 +1,6 @@
 """AI research service.
 
-The language model is replaced outright — these tests never make a billed call.
+The language model is replaced outright - these tests never make a billed call.
 What is being verified is the contract around the model: that the response
 schema cannot carry a number, that a malformed report is discarded rather than
 partially shown, that the disclaimer is fixed server-side, and that the prompt
@@ -51,7 +51,7 @@ def fake_model(monkeypatch: pytest.MonkeyPatch):
 # The structural guarantee
 # ==========================================================================
 class TestSchemaCannotCarryNumbers:
-    """The model is a writer, not a calculator — enforced by the schema."""
+    """The model is a writer, not a calculator - enforced by the schema."""
 
     def test_no_numeric_field_exists(self) -> None:
         schema = ResearchNarrative.model_json_schema()
@@ -79,7 +79,7 @@ class TestSchemaCannotCarryNumbers:
 
 
 class TestBalanceIsEnforced:
-    """Both sides must be argued — a validation rule, not a polite request."""
+    """Both sides must be argued - a validation rule, not a polite request."""
 
     def test_valid_report_is_accepted(self) -> None:
         ResearchNarrative(**VALID_NARRATIVE_FIELDS)
@@ -126,8 +126,11 @@ class TestDataBlock:
             news=snapshot.news,
         )
 
-        assert block["fundamentals"]["peg_ratio"] is None
+        # The provider does not offer a forward P/E, so it must reach the
+        # model as null rather than being quietly dropped or zeroed - the model
+        # needs to see that the metric is absent so it can say so.
         assert block["fundamentals"]["forward_pe"] is None
+        assert block["fundamentals"]["analyst_target_price"] is None
         assert "indicators_unavailable" in block
 
     def test_system_prompt_states_the_rules(self) -> None:

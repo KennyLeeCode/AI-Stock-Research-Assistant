@@ -22,7 +22,7 @@ interface BadgeProps {
  * A small status pill.
  *
  * `srLabel` exists because badges are often terse to the point of being
- * meaningless out of context — "RSI 72" paired with an "overbought" tone reads
+ * meaningless out of context - "RSI 72" paired with an "overbought" tone reads
  * fine visually but tells a screen reader nothing about the tone. Colour is
  * never the sole carrier of meaning here.
  */

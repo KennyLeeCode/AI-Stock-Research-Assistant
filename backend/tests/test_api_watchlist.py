@@ -6,7 +6,7 @@ import httpx
 import respx
 from fastapi.testclient import TestClient
 
-from .conftest import ALPHA_VANTAGE_URL
+from .conftest import FMP_URL
 
 
 class TestListing:
@@ -36,7 +36,7 @@ class TestAdding:
 
     def test_company_name_is_resolved(self, client: TestClient, market_data) -> None:
         body = client.post("/api/watchlist", json={"ticker": "AAPL"}).json()
-        assert body["company_name"] == "Apple Inc"
+        assert body["company_name"] == "Apple Inc."
 
     def test_blank_notes_become_null(self, client: TestClient, market_data) -> None:
         """One absent case for the frontend to handle, not two."""
@@ -66,7 +66,7 @@ class TestAdding:
     def test_saves_even_when_provider_is_down(self, client: TestClient) -> None:
         """A third-party outage must not stop the user saving a ticker."""
         with respx.mock(assert_all_called=False) as router:
-            router.get(ALPHA_VANTAGE_URL).mock(
+            router.get(url__startswith=FMP_URL).mock(
                 return_value=httpx.Response(500, text="boom")
             )
             response = client.post("/api/watchlist", json={"ticker": "AAPL"})

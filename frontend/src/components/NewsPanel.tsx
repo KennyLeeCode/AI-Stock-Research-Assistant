@@ -85,7 +85,16 @@ interface NewsPanelProps {
 
 export function NewsPanel({ news }: NewsPanelProps) {
   if (news.articles.length === 0) {
-    return (
+    // A `note` means the feed is empty for a specific reason - a paid-plan
+    // endpoint, say. Showing the generic "no articles found" copy in that case
+    // would tell the user something untrue about the company.
+    return news.note ? (
+      <EmptyState
+        title="News unavailable"
+        description={news.note}
+        compact
+      />
+    ) : (
       <EmptyState
         title="No recent news"
         description={`The data provider returned no recent articles for ${news.symbol}.`}

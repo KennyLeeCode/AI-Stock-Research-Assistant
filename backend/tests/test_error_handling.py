@@ -2,7 +2,7 @@
 
 The frontend branches on `error.code`, so a single response missing it is a
 crash rather than a handled state. And a 500 must expose exactly one piece of
-internal state — the request id — and nothing else.
+internal state - the request id - and nothing else.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 
-from .conftest import ALPHA_VANTAGE_URL
+from .conftest import FMP_URL
 
 SECRET = "sk-ant-DO-NOT-LEAK"
 
@@ -147,14 +147,14 @@ class TestUpstreamErrorsAreTranslated:
     def test_provider_url_is_not_disclosed(self, client: TestClient) -> None:
         """The upstream URL carries the API key as a query parameter."""
         with respx.mock(assert_all_called=False) as router:
-            router.get(ALPHA_VANTAGE_URL).mock(
+            router.get(url__startswith=FMP_URL).mock(
                 return_value=httpx.Response(500, text="boom")
             )
             text = client.get("/api/stocks/AAPL/quote").text
 
         assert "apikey" not in text
-        assert "TEST_MARKET_KEY" not in text
-        assert "alphavantage.co" not in text
+        assert "TEST_FMP_KEY" not in text
+        assert "financialmodelingprep.com" not in text
 
 
 class TestHealth:
@@ -166,5 +166,5 @@ class TestHealth:
         assert body["status"] == "ok"
         assert body["dependencies"]["market_data_configured"] is True
         assert body["dependencies"]["ai_configured"] is True
-        # Booleans only — never the values.
-        assert "TEST_MARKET_KEY" not in client.get("/api/health").text
+        # Booleans only - never the values.
+        assert "TEST_FMP_KEY" not in client.get("/api/health").text

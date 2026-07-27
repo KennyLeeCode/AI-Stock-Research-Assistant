@@ -106,7 +106,7 @@ interface WatchlistPanelProps {
  * Saved tickers, with click-to-load and inline removal.
  *
  * Removal errors are surfaced in the panel rather than thrown away, because the
- * optimistic delete is rolled back on failure — the row reappearing with no
+ * optimistic delete is rolled back on failure - the row reappearing with no
  * explanation would look like a bug.
  */
 export function WatchlistPanel({

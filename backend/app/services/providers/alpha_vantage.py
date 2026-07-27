@@ -115,7 +115,7 @@ class AlphaVantageProvider(StockDataProvider):
         Retries transport failures and 5xx responses with exponential backoff.
         Client errors (4xx) are not retried, since repeating them cannot help.
         """
-        if not self._settings.has_market_data_key:
+        if not self._settings.has_alpha_vantage_key:
             raise ConfigurationError(
                 "ALPHA_VANTAGE_API_KEY is not configured on the server."
             )
@@ -131,7 +131,7 @@ class AlphaVantageProvider(StockDataProvider):
 
         for attempt in range(1, attempts + 1):
             try:
-                # NOTE: never log `response.url` or `query` — both carry the API key.
+                # NOTE: never log `response.url` or `query` - both carry the API key.
                 response = await client.get(self._base_url, params=query)
 
                 if response.status_code >= 500:

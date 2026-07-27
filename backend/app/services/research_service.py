@@ -14,13 +14,13 @@ and returns prose. Four independent mechanisms keep it from producing data:
      Schema via structured outputs, so a malformed shape cannot come back.
   4. **Independent revalidation.** The parsed result is checked against the same
      Pydantic model on receipt. A report failing either check raises
-     `AIResponseValidationError` and is discarded — never partially rendered.
+     `AIResponseValidationError` and is discarded - never partially rendered.
 
 The prompt additionally instructs the model to cite only figures present in the
 data block and to say plainly when something is unavailable. Note the honest
 limit of that instruction: prose is prose, so a figure quoted inside a sentence
 is model-written text, not a validated measurement. That is why no prose figure
-is ever parsed back out and treated as data — the numbers the UI renders come
+is ever parsed back out and treated as data - the numbers the UI renders come
 from the typed models, and the narrative sits alongside them.
 """
 
@@ -66,7 +66,7 @@ You are a financial research analyst writing a balanced, factual briefing for a 
 retail investor. You will be given a JSON block of market data that has already \
 been gathered and calculated. Your job is to interpret it in plain English.
 
-ABSOLUTE RULES — these override any other consideration:
+ABSOLUTE RULES - these override any other consideration:
 
 1. Use only the figures present in the DATA block. Do not calculate new figures, \
 do not estimate, do not infer values that are absent, and do not rely on \
@@ -74,7 +74,7 @@ anything you remember about this company from training. If the data contradicts 
 your prior knowledge, the data wins.
 
 2. A null value, or a metric listed under "unavailable", means the figure was \
-not available. Say so plainly — for example, "a P/E ratio was not available for \
+not available. Say so plainly - for example, "a P/E ratio was not available for \
 this company". Never substitute a placeholder, never guess, and never treat a \
 missing value as zero.
 
@@ -236,7 +236,7 @@ def _build_user_message(data_block: dict[str, Any]) -> str:
     return (
         "Write a research briefing for this security using ONLY the data below.\n"
         "Any value that is null, or listed under 'indicators_unavailable', is "
-        "genuinely unavailable — state that rather than estimating it.\n\n"
+        "genuinely unavailable - state that rather than estimating it.\n\n"
         f"<DATA>\n{payload}\n</DATA>"
     )
 

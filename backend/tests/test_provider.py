@@ -2,8 +2,8 @@
 
 Alpha Vantage signals most failures with HTTP 200 and an explanatory key in the
 body, so status codes alone cannot be trusted. These tests pin that behaviour
-down, along with the rule that the API key — which travels as a query parameter
-— never appears in a log line or an exception message.
+down, along with the rule that the API key - which travels as a query parameter
+- never appears in a log line or an exception message.
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ async def provider():
 
 
 class TestQuoteNormalization:
-    async def test_fields_are_normalized(self, provider, market_data) -> None:
+    async def test_fields_are_normalized(self, provider, alpha_vantage_data) -> None:
         quote = await provider.get_quote("AAPL")
 
         assert quote.symbol == "AAPL"
@@ -54,7 +54,7 @@ class TestQuoteNormalization:
 
 class TestOverviewNormalization:
     async def test_missing_metrics_are_none_not_zero(
-        self, provider, market_data
+        self, provider, alpha_vantage_data
     ) -> None:
         overview = await provider.get_overview("AAPL")
 
@@ -66,7 +66,7 @@ class TestOverviewNormalization:
         # The distinction that matters.
         assert overview.peg_ratio != 0
 
-    async def test_scalar_fields(self, provider, market_data) -> None:
+    async def test_scalar_fields(self, provider, alpha_vantage_data) -> None:
         overview = await provider.get_overview("AAPL")
         assert overview.name == "Apple Inc"
         assert overview.market_cap == 2_900_000_000_000
@@ -74,13 +74,13 @@ class TestOverviewNormalization:
 
 
 class TestHistoryNormalization:
-    async def test_points_are_chronological(self, provider, market_data) -> None:
+    async def test_points_are_chronological(self, provider, alpha_vantage_data) -> None:
         history = await provider.get_history("AAPL", 365)
         dates = [point.date for point in history.points]
         assert dates == sorted(dates)
         assert len(history.points) > 0
 
-    async def test_window_is_respected(self, provider, market_data) -> None:
+    async def test_window_is_respected(self, provider, alpha_vantage_data) -> None:
         history = await provider.get_history("AAPL", 30)
         assert len(history.points) <= 31
 
@@ -108,7 +108,7 @@ class TestHistoryNormalization:
 
 class TestNewsNormalization:
     async def test_unrenderable_articles_are_dropped(
-        self, provider, market_data
+        self, provider, alpha_vantage_data
     ) -> None:
         """An article with no headline or no link cannot be displayed."""
         news = await provider.get_news("AAPL", 10)
@@ -210,9 +210,9 @@ class TestRetriesAndTimeouts:
 class TestApiKeyIsNeverLeaked:
     """The key travels as a query parameter, so URLs must never be surfaced."""
 
-    async def test_key_is_sent_upstream(self, provider, market_data) -> None:
+    async def test_key_is_sent_upstream(self, provider, alpha_vantage_data) -> None:
         await provider.get_quote("AAPL")
-        request = market_data.calls.last.request
+        request = alpha_vantage_data.calls.last.request
         assert request.url.params["apikey"] == "TEST_MARKET_KEY"
 
     @pytest.mark.parametrize(

@@ -71,8 +71,8 @@ interface PriceChartProps {
 /**
  * Closing-price chart with a range selector.
  *
- * Line colour follows the period's direction — green if the security is up over
- * the window, red if down — which is a convention readers already understand.
+ * Line colour follows the period's direction - green if the security is up over
+ * the window, red if down - which is a convention readers already understand.
  * The Y axis is deliberately *not* zero-based: equity prices rarely approach
  * zero, and anchoring the axis there would flatten every series into a
  * meaningless straight line.

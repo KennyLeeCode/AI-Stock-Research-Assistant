@@ -31,7 +31,7 @@ def validated_ticker(
     declaration. FastAPI enforces such constraints *before* this function runs
     and reports failures as a 422 `validation_error`, so an over-long symbol
     would return a different status and error code than any other malformed
-    symbol — the same user mistake surfacing two ways, forcing the frontend to
+    symbol - the same user mistake surfacing two ways, forcing the frontend to
     handle both. `normalize_ticker` owns every rule about what a symbol may
     look like, including its length, so all malformed input yields one
     consistent 400 `invalid_ticker`.

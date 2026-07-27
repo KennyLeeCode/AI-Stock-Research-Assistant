@@ -38,7 +38,15 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./stock_research.db"
 
     # ---------- Market data provider ----------
-    market_data_provider: str = "alpha_vantage"
+    # Selects which implementation `get_provider()` builds.
+    market_data_provider: str = "fmp"
+
+    # Financial Modeling Prep. The `/stable` API - the older `/api/v3` routes
+    # are retired and answer 403.
+    fmp_api_key: SecretStr = SecretStr("")
+    fmp_base_url: str = "https://financialmodelingprep.com/stable"
+
+    # Alpha Vantage remains supported; set MARKET_DATA_PROVIDER=alpha_vantage.
     alpha_vantage_api_key: SecretStr = SecretStr("")
     alpha_vantage_base_url: str = "https://www.alphavantage.co/query"
 
@@ -86,8 +94,29 @@ class Settings(BaseSettings):
         return self.environment.strip().lower() == "development"
 
     @property
-    def has_market_data_key(self) -> bool:
+    def has_fmp_key(self) -> bool:
+        return _is_real_secret(self.fmp_api_key)
+
+    @property
+    def has_alpha_vantage_key(self) -> bool:
         return _is_real_secret(self.alpha_vantage_api_key)
+
+    @property
+    def market_data_key(self) -> SecretStr:
+        """The API key belonging to the selected provider."""
+        if self.market_data_provider.strip().lower() == "alpha_vantage":
+            return self.alpha_vantage_api_key
+        return self.fmp_api_key
+
+    @property
+    def has_market_data_key(self) -> bool:
+        """Whether the *selected* provider has a usable key.
+
+        Used by the health endpoint and the startup warning. Individual
+        providers check their own key instead, so that constructing one
+        directly does not depend on which provider happens to be selected.
+        """
+        return _is_real_secret(self.market_data_key)
 
     @property
     def has_ai_key(self) -> bool:

@@ -110,7 +110,7 @@ interface ErrorCopy {
  *
  * The backend's own message is used as the description wherever it is already
  * user-facing; this adds a short title and, where useful, a hint that explains
- * *why* something happened and what to do — for example, that the free market
+ * *why* something happened and what to do - for example, that the free market
  * data tier allows only about 25 requests a day.
  */
 function copyForError(error: ApiError): ErrorCopy {
@@ -121,7 +121,7 @@ function copyForError(error: ApiError): ErrorCopy {
       return {
         title: 'That does not look like a ticker symbol',
         description: error.message,
-        hint: 'Symbols are 1–6 letters, optionally with a class suffix — for example AAPL, MSFT, or BRK.B.',
+        hint: 'Symbols are 1-6 letters, optionally with a class suffix - for example AAPL, MSFT, or BRK.B.',
         icon: <IconSearch />,
         variant: 'warning',
         retryable: false,

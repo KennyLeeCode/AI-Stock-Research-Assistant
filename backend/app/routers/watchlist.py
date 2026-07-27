@@ -47,7 +47,7 @@ async def add_to_watchlist(
     """Save a ticker.
 
     The company name is resolved best-effort for display. If the market-data
-    provider is unavailable or out of quota, the ticker is still saved — just
+    provider is unavailable or out of quota, the ticker is still saved - just
     without a name.
     """
     item = await watchlist_service.add_ticker(db, payload.ticker, payload.notes)

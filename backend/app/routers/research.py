@@ -33,7 +33,7 @@ async def create_research_report(payload: ResearchRequest) -> ResearchReport:
     The report is assembled from data this API has already fetched and computed:
     the quote, price history, technical indicators, fundamentals, and recent
     headlines. The language model receives that data as a read-only block and
-    returns prose only — every figure shown in the UI comes from the typed
+    returns prose only - every figure shown in the UI comes from the typed
     market-data models, not from the model's output.
 
     Reports are cached briefly. Set `refresh` to `true` to force a new one.

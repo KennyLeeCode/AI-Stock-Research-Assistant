@@ -3,13 +3,13 @@
 This is the layer routers talk to. It owns three concerns the provider
 deliberately does not:
 
-  * **Validation** — every ticker is normalized before it is used in a request
+  * **Validation** - every ticker is normalized before it is used in a request
     or a cache key, so one symbol cannot occupy two cache slots and unvalidated
     input never reaches an outbound URL.
-  * **Caching** — the free Alpha Vantage tier allows roughly 25 requests a day,
+  * **Caching** - the free Alpha Vantage tier allows roughly 25 requests a day,
     and a single dashboard load needs four. TTLs are per data type: quotes go
     stale in a minute, company profiles do not change daily.
-  * **Concurrency** — the dashboard needs four independent datasets, so they are
+  * **Concurrency** - the dashboard needs four independent datasets, so they are
     fetched in parallel rather than serially.
 
 Only successful responses are cached. An error is never stored, so a transient
@@ -127,7 +127,7 @@ async def get_snapshot(
 ) -> StockSnapshot:
     """Fetch quote, history, overview, and news concurrently.
 
-    Quote, history, and overview are required — if any fails, the caller gets
+    Quote, history, and overview are required - if any fails, the caller gets
     that error, because a research report or dashboard built on two of three
     datasets would be misleading.
 

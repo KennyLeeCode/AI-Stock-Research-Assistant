@@ -6,7 +6,7 @@ import styles from './OfflineBanner.module.css'
  * Persistent notice shown while the browser reports no connection.
  *
  * `role="status"` with `aria-live="polite"` announces the change without
- * interrupting whatever a screen reader is currently reading — appearing and
+ * interrupting whatever a screen reader is currently reading - appearing and
  * disappearing as connectivity flaps would be intolerable with `alert`.
  */
 export function OfflineBanner() {

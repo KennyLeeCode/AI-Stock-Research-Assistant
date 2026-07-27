@@ -12,7 +12,7 @@
  */
 
 /** Shown wherever a value is genuinely unavailable. */
-export const EM_DASH = '—'
+export const EM_DASH = '-'
 
 /** Locale used for all number and date formatting. */
 const LOCALE = 'en-US'
@@ -213,7 +213,7 @@ export function directionLabel(direction: Direction): string {
   }
 }
 
-/** Conventional RSI reading. Context only — never presented as a signal to act. */
+/** Conventional RSI reading. Context only - never presented as a signal to act. */
 export function rsiZone(
   value: number | null | undefined,
 ): 'overbought' | 'oversold' | 'neutral' | null {

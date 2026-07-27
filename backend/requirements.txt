@@ -21,6 +21,6 @@ httpx==0.28.1
 # Structured outputs (output_config.format) require a recent SDK.
 anthropic==0.120.0
 
-# Optional database drivers — install only when moving off SQLite:
+# Optional database drivers - install only when moving off SQLite:
 #   PostgreSQL: psycopg[binary]
 #   MySQL:      PyMySQL

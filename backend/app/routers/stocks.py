@@ -2,7 +2,7 @@
 
 Route handlers do three things only: accept validated input, call a service, and
 return a typed model. There is no business logic, no HTTP client, and no
-database access here — that is what keeps the services testable without a web
+database access here - that is what keeps the services testable without a web
 server and the provider swappable without touching the API surface.
 """
 

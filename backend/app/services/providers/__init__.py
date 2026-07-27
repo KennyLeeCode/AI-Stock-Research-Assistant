@@ -13,8 +13,10 @@ from app.config import Settings, get_settings
 from app.core.exceptions import ConfigurationError
 from app.services.providers.alpha_vantage import AlphaVantageProvider
 from app.services.providers.base import StockDataProvider
+from app.services.providers.fmp import FMPProvider
 
 _PROVIDERS: dict[str, Callable[[Settings], StockDataProvider]] = {
+    "fmp": FMPProvider,
     "alpha_vantage": AlphaVantageProvider,
 }
 
@@ -52,6 +54,7 @@ async def close_provider() -> None:
 __all__ = [
     "StockDataProvider",
     "AlphaVantageProvider",
+    "FMPProvider",
     "get_provider",
     "close_provider",
 ]

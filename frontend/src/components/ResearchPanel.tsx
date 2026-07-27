@@ -39,7 +39,7 @@ interface ResearchPanelProps {
  * reader is shown a balanced view. The conclusion is styled as a summary of the
  * tension between them, not as a verdict.
  *
- * Nothing rendered here is a number the application treats as data — the
+ * Nothing rendered here is a number the application treats as data - the
  * report contains prose only. Every figure on the dashboard comes from the
  * market-data panels.
  */
@@ -146,7 +146,7 @@ export function ResearchIntro({
       <p className={styles.introText}>
         Generate a balanced research briefing for {symbol}. The report is written
         from the quote, price history, indicators, fundamentals, and headlines
-        shown on this page — the model interprets that data and cannot introduce
+        shown on this page - the model interprets that data and cannot introduce
         figures of its own.
       </p>
       <Button variant="primary" onClick={onGenerate} loading={loading}>

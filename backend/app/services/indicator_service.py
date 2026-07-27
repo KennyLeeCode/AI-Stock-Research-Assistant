@@ -2,7 +2,7 @@
 
 Implemented in pure Python. The maths here is a few dozen arithmetic
 operations over a list of floats, which does not justify a numpy/pandas
-dependency — and keeping it dependency-free makes every function trivially
+dependency - and keeping it dependency-free makes every function trivially
 unit-testable and the deployment image far smaller.
 
 Two layers:
@@ -212,7 +212,7 @@ def _change_over_calendar_days(points: list[PricePoint], days: int) -> float:
 
     Markets are shut at weekends and on holidays, so the exact target date
     frequently has no data. The nearest earlier trading day is used instead,
-    provided it is within `LOOKBACK_TOLERANCE_DAYS` — beyond that, the window
+    provided it is within `LOOKBACK_TOLERANCE_DAYS` - beyond that, the window
     is too distorted for the result to be described as a one- or three-month
     change.
 

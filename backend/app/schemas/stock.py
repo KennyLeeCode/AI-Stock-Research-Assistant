@@ -172,3 +172,12 @@ class NewsFeed(ProviderPayload):
 
     symbol: str
     articles: list[NewsArticle] = Field(default_factory=list)
+    note: str | None = Field(
+        default=None,
+        description=(
+            "Why the feed is empty, when the reason is not simply that no "
+            "articles exist - for example, the endpoint requiring a paid plan. "
+            "Lets the UI explain an empty list instead of implying the company "
+            "has no coverage."
+        ),
+    )

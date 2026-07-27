@@ -115,7 +115,7 @@ ol {
    ========================================================================== */
 
 /* Visible only to screen readers. Used for context that is obvious visually
-   but invisible to assistive technology — for example, the direction of a
+   but invisible to assistive technology - for example, the direction of a
    price change that sighted users read from colour and an arrow. */
 .sr-only {
   position: absolute;

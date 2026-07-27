@@ -8,12 +8,12 @@ Anything *not* an `AppError` is treated as a bug: it is logged with a full
 traceback server-side and returned to the client as a generic 500, so internal
 details and provider URLs (which may contain API keys) never leak. Server
 errors do carry the request id, which is the only piece of internal state that
-is safe — and useful — to expose, because it lets a user quote it in a bug
+is safe - and useful - to expose, because it lets a user quote it in a bug
 report and lets an operator find the exact traceback.
 
 Framework errors are normalized too. Starlette raises its own `HTTPException`
 for unmatched routes and unsupported methods, which by default renders as
-`{"detail": "Not Found"}` — a different shape from everything else. Since the
+`{"detail": "Not Found"}` - a different shape from everything else. Since the
 frontend branches on `error.code`, a single response that omits it would be a
 crash rather than a handled state, so those are re-rendered in the same
 envelope. **Every** error response from this API has the same shape.
@@ -140,7 +140,7 @@ class InsufficientDataError(AppError):
     """Not enough real data exists to compute what was asked for.
 
     Raised instead of substituting a default, padding a series, or estimating a
-    value. Financial figures are either measured from provider data or absent —
+    value. Financial figures are either measured from provider data or absent -
     they are never invented.
     """
 
@@ -225,7 +225,7 @@ def _id_headers(request: Request, extra: dict[str, str] | None = None) -> dict[s
     """Response headers carrying the request id.
 
     The middleware sets this header on normal responses, but an unhandled
-    exception unwinds *past* it — Starlette's outermost error middleware builds
+    exception unwinds *past* it - Starlette's outermost error middleware builds
     that response, so the middleware never gets to touch it. Setting the header
     here as well guarantees it is present on every error response, which is
     precisely when a caller needs it.

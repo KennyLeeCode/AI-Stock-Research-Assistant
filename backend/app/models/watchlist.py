@@ -1,6 +1,6 @@
 """ORM model for saved watchlist entries.
 
-Portability notes — this table is written to work unchanged on SQLite,
+Portability notes - this table is written to work unchanged on SQLite,
 PostgreSQL, and MySQL:
 
   * `String(n)` is used rather than `Text` for the indexed/unique `ticker`

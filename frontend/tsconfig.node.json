@@ -19,7 +19,7 @@
 
     /* vite.config.ts runs in Node, so it needs Node's globals and the
        `node:url` module types. The app config deliberately does not include
-       these — browser code must not reach for Node APIs. */
+       these - browser code must not reach for Node APIs. */
     "types": ["node"]
   },
   "include": ["vite.config.ts"]

@@ -8,7 +8,7 @@ import styles from './SearchBar.module.css'
  * Mirrors the server's rule in `app/core/validation.py`.
  *
  * Client-side validation here is purely to give instant feedback and avoid a
- * pointless round trip — it is not a security control. The server validates
+ * pointless round trip - it is not a security control. The server validates
  * every symbol again regardless, because anything sent from a browser can be
  * forged.
  */

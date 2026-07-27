@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 /**
  * Tracks browser connectivity.
  *
- * `navigator.onLine` is a weak signal — it reports whether the device has a
- * network interface, not whether the internet is reachable — so it is treated
+ * `navigator.onLine` is a weak signal - it reports whether the device has a
+ * network interface, not whether the internet is reachable - so it is treated
  * as a hint, not a guarantee. It is reliable in one direction: when it reports
  * `false`, the device is definitely offline, and that is the case worth telling
  * the user about. A "you appear to be offline" banner is far more useful than

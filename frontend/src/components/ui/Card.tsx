@@ -5,7 +5,7 @@ import styles from './Card.module.css'
 interface CardProps {
   /** Section label. Rendered uppercase; omit for a bare container. */
   title?: string
-  /** Supporting line under the title — typically data provenance. */
+  /** Supporting line under the title - typically data provenance. */
   subtitle?: ReactNode
   /** Control aligned to the top-right, e.g. a refresh button. */
   action?: ReactNode

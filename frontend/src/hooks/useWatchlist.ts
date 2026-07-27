@@ -10,7 +10,7 @@ import {
  *
  * Throws when used outside `WatchlistProvider` rather than returning a default.
  * A silent default would let a component render a permanently empty watchlist
- * whose add button appears to do nothing — a bug that is far harder to trace
+ * whose add button appears to do nothing - a bug that is far harder to trace
  * than an immediate, explicit error.
  */
 export function useWatchlist(): WatchlistContextValue {
