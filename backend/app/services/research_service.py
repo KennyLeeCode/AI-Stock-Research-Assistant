@@ -94,6 +94,9 @@ and what would need to be true for either to play out. Do not declare a winner.
 6. Write for a non-expert. Explain jargon on first use. Be specific and concise; \
 avoid filler and hedging language.
 
+7. Punctuation: use plain hyphens, commas or full stops. Do not use em dashes \
+or en dashes anywhere in your output.
+
 UNITS in the DATA block:
   - "change_percent", "price_change_1m", "price_change_3m", "volatility_30d" \
 are percentages: 1.25 means 1.25%.
