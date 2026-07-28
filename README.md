@@ -1,4 +1,4 @@
-# AI Stock Research Assistant
+# AI Stock Research Platform
 
 Search a stock ticker and get a full research dashboard: live quote, price
 chart, company fundamentals, technical indicators, and an AI-written research
